@@ -1,3 +1,4 @@
+use std::env::args;
 use std::error::Error;
 use std::fs;
 
@@ -11,24 +12,22 @@ impl Config{
     pub fn new(args: &[String]) -> Result<Config, &'static str>{
         if args.len() < 3{
             return Err("not enough arguments");
-        } else if args.len() == 3{
-            let query = args[1].clone();
-            let filename = args[2].clone();
-            let case_sensitive = true;
-            Ok(Config{query, filename, case_sensitive})
-        } else if args.len() == 4{
-            let query = args[1].clone();
-            let filename = args[2].clone();
+        }
+
+        let query = args[1].clone();
+        let filename = args[2].clone();
+        let case_sensitive = true;
+
+        if args.len() == 4{
             // parse::<bool>() 方法对于 "false" 和 "true" 字符串以及其他有效的布尔表示形式（例如 "0" 和 "1"）都有效。
             let case_sensitive = match args[3].clone().parse::<bool>(){
                 Ok(parsed)=>parsed,
                 Err(_)=> return Err("invalid value for case_sensitive"),
             };
-            Ok(Config{query, filename, case_sensitive})
-        } else {
+        } else if args().len() > 4{
             return Err("extra arguments")
         }
-
+    Ok(Config{query, filename, case_sensitive})
     }
 }
 
