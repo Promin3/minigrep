@@ -1,6 +1,5 @@
-use std::env::args;
 use std::error::Error;
-use std::fs;
+use std::{fs,env};
 
 pub struct Config{
     pub query:String,
@@ -9,25 +8,34 @@ pub struct Config{
 }
 
 impl Config{
-    pub fn new(args: &[String]) -> Result<Config, &'static str>{
-        if args.len() < 3{
-            return Err("not enough arguments");
-        }
+    pub fn new(mut args: env::Args) -> Result<Config, &'static str>{
+        args.next();
 
-        let query = args[1].clone();
-        let filename = args[2].clone();
-        let case_sensitive = true;
+        let query =  match args.next() {
+            Some(args) => args,
+            None => return Err("Didn't get a query string"),
+        };
 
-        if args.len() == 4{
-            // parse::<bool>() 方法对于 "false" 和 "true" 字符串以及其他有效的布尔表示形式（例如 "0" 和 "1"）都有效。
-            let case_sensitive = match args[3].clone().parse::<bool>(){
-                Ok(parsed)=>parsed,
-                Err(_)=> return Err("invalid value for case_sensitive"),
-            };
-        } else if args().len() > 4{
-            return Err("extra arguments")
-        }
-    Ok(Config{query, filename, case_sensitive})
+        let filename = match args.next() {
+            Some(args) => args,
+            None => return Err("Didn't get a file name"),
+        };
+
+        let case_sensitive_str = match args.next() {
+            Some(args) => args,
+            None => "true".to_string(),
+        };
+
+        let case_sensitive = match case_sensitive_str.parse::<bool>(){
+            Ok(value) => value,
+            Err(_) => return Err("Invalid value for case_sensitive, should be 'true' or 'false'"),
+        };
+
+        if let Some(_) = args.next(){
+            return Err("Too much arguments")
+        };
+
+        Ok(Config{query, filename, case_sensitive})
     }
 }
 
